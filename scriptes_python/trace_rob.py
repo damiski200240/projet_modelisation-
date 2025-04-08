@@ -2,10 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Déclaration des longueurs globales
-L1 = None   
-L2 = None
-Rb = None 
-Re = None 
+global L1, L2, Rb, Re
+
+L1=0.10  #long segment 1
+L2=0.10  #long segment 2
+Rb=0.1322594  # Rayon base
+Re=0.07 # Rayon effecteur
+ 
 
 def trace_rob(q):
     global L1, L2, Rb, Re
