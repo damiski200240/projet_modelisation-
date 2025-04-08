@@ -2,7 +2,7 @@ import numpy as np
 
 global L1, L2, Rb, Re
 
-def solve_ieq_NL(q,eff): 
+def solve_eq_NL(q,eff): 
     q = [q0,q1,q2, q3, q4 , q5, q6]
     alpha = [alpha1, alpha2 , alpha3]
     beta =[beta1, beta2,beta3]
