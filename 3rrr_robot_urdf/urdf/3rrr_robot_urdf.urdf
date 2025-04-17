@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="3rrr_robot_urdf">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.043858 -0.19668 0.019226"
+        rpy="0 0 0" />
+      <mass
+        value="0.57799" />
+      <inertia
+        ixx="0.00041808"
+        ixy="1.4393E-15"
+        ixz="1.0779E-15"
+        iyy="0.00041808"
+        iyz="1.692E-14"
+        izz="0.00065514" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="bras_ax12_1">
+    <inertial>
+      <origin
+        xyz="0.0033955 -0.048172 -0.0050002"
+        rpy="0 0 0" />
+      <mass
+        value="0.016877" />
+      <inertia
+        ixx="1.9936E-05"
+        ixy="1.3671E-06"
+        ixz="-9.3119E-12"
+        iyy="6.3757E-07"
+        iyz="1.3211E-10"
+        izz="2.0292E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_ax12_0"
+    type="revolute">
+    <origin
+      xyz="0 0.0135 0.0455"
+      rpy="3.1416 0 3.017" />
+    <parent
+      link="base_link" />
+    <child
+      link="bras_ax12_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="5.24"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="bras_avec_triangle_1">
+    <inertial>
+      <origin
+        xyz="-0.016592 0.0052619 0.004589"
+        rpy="0 0 0" />
+      <mass
+        value="0.018783" />
+      <inertia
+        ixx="2.3333E-05"
+        ixy="-5.0431E-06"
+        ixz="7.5844E-08"
+        iyy="1.7662E-06"
+        iyz="3.412E-07"
+        izz="2.4639E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_triangle_0"
+    type="revolute">
+    <origin
+      xyz="-0.0071344 -0.14493 -0.01"
+      rpy="3.1416 0 2.9939" />
+    <parent
+      link="bras_ax12_1" />
+    <child
+      link="bras_avec_triangle_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="triangle">
+    <inertial>
+      <origin
+        xyz="-0.024905 -0.028947 0.0072109"
+        rpy="0 0 0" />
+      <mass
+        value="0.049485" />
+      <inertia
+        ixx="1.5427E-05"
+        ixy="-1.0588E-20"
+        ixz="-2.6736E-21"
+        iyy="1.5427E-05"
+        iyz="1.9022E-20"
+        izz="2.8505E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/triangle.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/triangle.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_triangle"
+    type="revolute">
+    <origin
+      xyz="-0.016211 -0.082561 0.0125"
+      rpy="-3.1416 0 0.60316" />
+    <parent
+      link="bras_avec_triangle_1" />
+    <child
+      link="triangle" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="bras_ax12_2">
+    <inertial>
+      <origin
+        xyz="0.021239 -0.04337 -0.0050002"
+        rpy="0 0 0" />
+      <mass
+        value="0.016877" />
+      <inertia
+        ixx="1.6262E-05"
+        ixy="7.6987E-06"
+        ixz="-5.8247E-11"
+        iyy="4.3115E-06"
+        iyz="1.1894E-10"
+        izz="2.0292E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_ax12_1"
+    type="revolute">
+    <origin
+      xyz="0.11619 -0.33973 0.046"
+      rpy="-3.1416 0 1.5637" />
+    <parent
+      link="base_link" />
+    <child
+      link="bras_ax12_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="5.24"
+      effort="1"
+      velocity="1" />
+    <mimic
+      joint="joint_bras_ax12_0"
+      multiplier="1"
+      offset="0" />
+  </joint>
+  <link
+    name="bras_avec_triangle_2">
+    <inertial>
+      <origin
+        xyz="0.010597 -0.024591 0.004589"
+        rpy="0 0 0" />
+      <mass
+        value="0.018783" />
+      <inertia
+        ixx="1.3905E-05"
+        ixy="1.1827E-05"
+        ixz="-2.3266E-07"
+        iyy="1.1195E-05"
+        iyz="2.6085E-07"
+        izz="2.4639E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_triangle_1"
+    type="revolute">
+    <origin
+      xyz="0.0471 -0.10848 -0.01"
+      rpy="-3.1416 0 -1.8104" />
+    <parent
+      link="bras_ax12_2" />
+    <child
+      link="bras_avec_triangle_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="bras_ax12_3">
+    <inertial>
+      <origin
+        xyz="0 0 -0.0050002"
+        rpy="0 0 0" />
+      <mass
+        value="0.016877" />
+      <inertia
+        ixx="1.9936E-05"
+        ixy="1.3671E-06"
+        ixz="-9.3119E-12"
+        iyy="6.3757E-07"
+        iyz="1.3211E-10"
+        izz="2.0292E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_ax12_3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_ax12_2"
+    type="revolute">
+    <origin
+      xyz="-0.24681 -0.26547 0.046"
+      rpy="-3.1416 0 -1.5185" />
+    <parent
+      link="base_link" />
+    <child
+      link="bras_ax12_3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="5.24"
+      effort="1"
+      velocity="1" />
+  </joint>
+  <link
+    name="bras_avec_triange_3">
+    <inertial>
+      <origin
+        xyz="0.0067257 0.019397 0.004589"
+        rpy="0 0 0" />
+      <mass
+        value="0.018783" />
+      <inertia
+        ixx="1.7788E-05"
+        ixy="1.069E-05"
+        ixz="-1.8495E-07"
+        iyy="7.3117E-06"
+        iyz="2.9659E-07"
+        izz="2.4639E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triange_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://3rrr_robot_urdf/meshes/bras_avec_triange_3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_bras_triangle_2"
+    type="revolute">
+    <origin
+      xyz="-0.018907 -0.14162 -0.01"
+      rpy="-3.1416 0 2.741" />
+    <parent
+      link="bras_ax12_3" />
+    <child
+      link="bras_avec_triange_3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="1"
+      velocity="1" />
+  </joint>
+</robot>
