@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/base_link.STL" />
+          filename="../meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -40,7 +40,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/base_link.STL" />
+          filename="../meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_1.STL" />
+          filename="../meshes/bras_ax12_1.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_1.STL" />
+          filename="../meshes/bras_ax12_1.STL" />
       </geometry>
     </collision>
   </link>
@@ -124,7 +124,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_1.STL" />
+          filename="../meshes/bras_avec_triangle_1.STL" />
       </geometry>
       <material
         name="">
@@ -138,7 +138,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_1.STL" />
+          filename="../meshes/bras_avec_triangle_1.STL" />
       </geometry>
     </collision>
   </link>
@@ -182,7 +182,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/triangle.STL" />
+          filename="../meshes/triangle.STL" />
       </geometry>
       <material
         name="">
@@ -196,7 +196,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/triangle.STL" />
+          filename="../meshes/triangle.STL" />
       </geometry>
     </collision>
   </link>
@@ -240,7 +240,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_2.STL" />
+          filename="../meshes/bras_ax12_2.STL" />
       </geometry>
       <material
         name="">
@@ -254,7 +254,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_2.STL" />
+          filename="../meshes/bras_ax12_2.STL" />
       </geometry>
     </collision>
   </link>
@@ -302,7 +302,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_2.STL" />
+          filename="../meshes/bras_avec_triangle_2.STL" />
       </geometry>
       <material
         name="">
@@ -316,7 +316,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triangle_2.STL" />
+          filename="../meshes/bras_avec_triangle_2.STL" />
       </geometry>
     </collision>
   </link>
@@ -360,7 +360,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_3.STL" />
+          filename="../meshes/bras_ax12_3.STL" />
       </geometry>
       <material
         name="">
@@ -374,7 +374,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_ax12_3.STL" />
+          filename="../meshes/bras_ax12_3.STL" />
       </geometry>
     </collision>
   </link>
@@ -418,7 +418,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triange_3.STL" />
+          filename="../meshes/bras_avec_triange_3.STL" />
       </geometry>
       <material
         name="">
@@ -432,7 +432,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://3rrr_robot_urdf/meshes/bras_avec_triange_3.STL" />
+          filename="../meshes/bras_avec_triange_3.STL" />
       </geometry>
     </collision>
   </link>
