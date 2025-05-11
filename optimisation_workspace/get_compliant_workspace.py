@@ -131,17 +131,17 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation) :
             xO.append(xO_i)
             yO.append(yO_i)
 
-    plt.figure()
-    plt.plot(*wrkspace1.exterior.xy, label='1st kinematic chain')
-    plt.plot(*wrkspace2.exterior.xy, label='2nd kinematic chain')
-    plt.plot(*wrkspace3.exterior.xy, label='3rd kinematic chain')
-    plt.plot(xO, yO, 'ro', label="Moteurs (O1, O2, O3)")  # points rouges 
-    plt.legend()
-    plt.axis('equal')
-    plt.show()
+    # plt.figure()
+    # plt.plot(*wrkspace1.exterior.xy, label='1st kinematic chain')
+    # plt.plot(*wrkspace2.exterior.xy, label='2nd kinematic chain')
+    # plt.plot(*wrkspace3.exterior.xy, label='3rd kinematic chain')
+    # plt.plot(xO, yO, 'ro', label="Moteurs (O1, O2, O3)")  # points rouges 
+    # plt.legend()
+    # plt.axis('equal')
+    # plt.show()
     
     comp_workspace = wrkspace1.intersection(wrkspace2).intersection(wrkspace3)
-    print(f"area if our workspace is {comp_workspace.area*1e-6} m²")
+    # print(f"area if our workspace is {comp_workspace.area*1e-6} m²")
     
     return comp_workspace
     

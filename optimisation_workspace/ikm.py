@@ -1,4 +1,4 @@
-# methode pour calucler le modele geometrique inverse d'une maniere qui donne les solutions rapidement avec le coude bas et haut. Ceci sera couplé avec jacobien_cond pour trouver les singularités 
+# methode pour calucler le modele cinematique inverse d'une maniere qui donne les solutions rapidement avec le coude bas et haut. Ceci sera couplé avec jacobien_cond pour trouver les singularités 
 # et de enfin trouver les params qui maximise le workspace
 # 
 
@@ -43,7 +43,8 @@ def ikm(x, y, theta_e, param):
     theta_up = []
     theta_down = []
     for i in range(0 , 3) : 
-       delta = max(0, sqrt(c_list[i] ** 2 + b_list[i]**2 - a_list[i] ** 2) )
+       under_root = c_list[i] ** 2 + b_list[i]**2 - a_list[i] ** 2
+       delta = max(0, under_root )
        th_up = 2 * arctan((-c_list[i] + delta) / a_list[i] - b_list[i])
        th_down = 2 * arctan((-c_list[i] - delta) / a_list[i] - b_list[i])
        theta_up.append(th_up)

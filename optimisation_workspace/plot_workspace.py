@@ -11,7 +11,7 @@ Re = 30
 param = [Rb, l1, l2, Re]
 
 # Compliant joint limitation
-limit = 300 * np.pi / 180
+limit = 80* np.pi / 180
 
 # Working mode
 mode = '- - -'
