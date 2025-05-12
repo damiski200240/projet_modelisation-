@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from get_coord import get_coord
 
 
-def get_compliant_workspace(param, limit, home_pos, mode, orientation) : 
+def get_compliant_workspace(param, limit, home_pos, mode, orientation, plot = False) : 
     # params are the parameteres of the workspace 
     # limit is the limit angle of each motor
     # mode is either elbow up (+) or down (-) for each robot : see the image in ressources  
@@ -130,15 +130,15 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation) :
             yO_i = Rb * sin(angle_O)
             xO.append(xO_i)
             yO.append(yO_i)
-
-    # plt.figure()
-    # plt.plot(*wrkspace1.exterior.xy, label='1st kinematic chain')
-    # plt.plot(*wrkspace2.exterior.xy, label='2nd kinematic chain')
-    # plt.plot(*wrkspace3.exterior.xy, label='3rd kinematic chain')
-    # plt.plot(xO, yO, 'ro', label="Moteurs (O1, O2, O3)")  # points rouges 
-    # plt.legend()
-    # plt.axis('equal')
-    # plt.show()
+    if plot:
+        plt.figure()
+        plt.plot(*wrkspace1.exterior.xy, label='1st kinematic chain')
+        plt.plot(*wrkspace2.exterior.xy, label='2nd kinematic chain')
+        plt.plot(*wrkspace3.exterior.xy, label='3rd kinematic chain')
+        plt.plot(xO, yO, 'ro', label="Moteurs (O1, O2, O3)")  # points rouges 
+        plt.legend()
+        plt.axis('equal')
+        plt.show()
     
     comp_workspace = wrkspace1.intersection(wrkspace2).intersection(wrkspace3)
     # print(f"area if our workspace is {comp_workspace.area*1e-6} m²")

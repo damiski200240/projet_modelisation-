@@ -1,10 +1,10 @@
 import math
 
 # Dimensions du robot (en mètres)
-L1 = 0.10        # Longueur bras  1
-L2 = 0.10        # Longueur bras  2 
-Rb = 0.1322594   # Rayon de la base  
-Re = 0.07        # Rayon de l’effecteur   
+L1 = 98.09268142*1e-3        # Longueur bras  1
+L2 = 98.09268142*1e-3# Longueur bras  2 
+Rb = 0.15   # Rayon de la base  
+Re = 77.91650034*1e-3  # Rayon de l’effecteur   
 
 
 # Affichage Pygame

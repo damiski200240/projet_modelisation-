@@ -1,58 +1,57 @@
-# this fonction is used to give the maximum angle before getting a singularity 
-# what it does is it takes the parameteres 
-# takes a workspace as a mesh grid 
-# calculate for every point the jacobienne 
-# if the motor is close to a singularity we stop 
-# and the motor would be allowed to work only in this 
-import numpy as np
-from shapely.geometry import Point, Polygon
+# this file is for computing the best params to get the maximum workspace area
+# we will pose two constraints : The robot shouldn't have a bigger reach then 15 cm and the arm length shouldn't be bigger than the radius of our base
+# and for simplicity we consider that the first and second leg are similair in length  
+# we will use differential_evolution to solve our optimisation problem 
+
+
+from scipy.optimize import differential_evolution
 from get_compliant_workspace import get_compliant_workspace
-def isinterior(polygon_points, x_coords, y_coords):
-    """Check if each (x, y) is inside the polygon."""
-    poly = Polygon(polygon_points)
-    return np.array([poly.contains(Point(x, y)) for x, y in zip(x_coords, y_coords)])
+from numpy import pi
+import  time
+from shapely.geometry import Point
 
-def workspace_optimization(param, loci, threshold):
-    """
-    Compute the maximum joint angle before entering a singularity.
+def get_compliant_workspace_polygon(param) : 
+    mode = '+ + +'
+    home_pos = [0, 0, 0]
+    orientation = 0 * pi / 180
+    limit = 300* pi / 180
+    workspace = get_compliant_workspace(param, limit, home_pos, mode, orientation, plot=False)
+    return workspace
+
+def is_inside_base_circle(workspace, Rb):
+    center = Point(0, 0)
+    base_circle = center.buffer(Rb)
+    return workspace.within(base_circle)
+
+def objective_function(param):
+    Rb = 150
+    L1, Re = param
+    L2 = L1
+    param = [Rb, L1, L2, Re]
+
+    workspace = get_compliant_workspace_polygon(param)
+    if workspace is None or workspace.is_empty:
+        return 1e6  # invalid configuration
+
+    # Reject if any part of workspace escapes the base circle
+    if not is_inside_base_circle(workspace, Rb) or Re > 0.75 * Rb or Re > 0.8 * L1 :
+        return 1e6  # penalty
+
+    return -workspace.area  # maximize area
+
+# Bounds for each variable
+bounds = [
+    (50, 180),  # L1
+    (10, 100)   # Re
+]
+def main():
+    # Run optimization
+    tm1 = time.time()
+    result = differential_evolution(objective_function, bounds, maxiter=20, updating="deferred", workers=-1)
+    tm2 = time.time()
+    print(f"result is {result.x}")
+    print("Max workspace area:", -result.fun, "mm²")
+    print(f"it took {tm2-tm1}s")
     
-    Parameters:
-    - param: [Rb, L1, L2, Re]
-    - loci: 2D array of Jacobian determinant or condition
-    - threshold: value under which a point is considered singular
-    
-    Returns:
-    - max_angle (degrees)
-    """
-    Rb, L1, L2, Re = param
-    rows, cols = loci.shape
-    
-    # Find indices of points below threshold (i.e. singularities)
-    singular_rows, singular_cols = np.where(loci < threshold)
-
-    # Convert indices to physical coordinates (assuming workspace from -0.21 to 0.21)
-    pixel2x = (0.21 - (-0.21)) / cols
-    pixel2y = (0.21 - (-0.21)) / rows
-    x_coords = -0.21 + singular_cols * pixel2x
-    y_coords = -0.21 + singular_rows * pixel2y
-
-    # Test angles from 1° to 180°
-    joint_limit = np.linspace(1, 180, 180)
-    max_angle = 0
-
-    for angle_deg in joint_limit:
-        angle_rad = angle_deg * np.pi / 180
-        
-        # You must define this yourself or mock it
-        comp_workspace = get_compliant_workspace(param, angle_rad, [0, 0, 0], '+ + +', 0)
-
-        # Check if any singularity falls inside the workspace
-        if isinterior(comp_workspace, x_coords, y_coords).any():
-            break
-        else:
-            max_angle = angle_deg
-
-    return max_angle
-    
-                
-                
+if __name__ == "__main__":
+    main()

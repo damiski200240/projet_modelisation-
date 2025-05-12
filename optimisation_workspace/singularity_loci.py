@@ -97,6 +97,12 @@ def combine_det(param, th1, th2, th3, x, y, a):
 
     return detJth, detJx
 
+def get_best_mode(det_J_s):
+    variations = [np.max(det_J_s[i]) - np.min(det_J_s[i]) for i in range(8)]
+    best_index = np.argmax(variations)
+    return best_index
+
+
 def det_J(param, coord, theta_e) : 
         
         
@@ -123,4 +129,9 @@ def det_J(param, coord, theta_e) :
 
     Ms = np.max(np.abs(det_J_s)) 
     det_J_s = det_J_s/Ms 
-    return det_J_p, det_J_s
+    
+    best_idx = get_best_mode(det_J_s)
+    print(f"[INFO] Best working mode index based on variation: {best_idx}")
+
+    return det_J_p, det_J_s, best_idx
+
