@@ -7,166 +7,191 @@ from fonctions_mathématiques import (
     homogene_transform,
     point_with_TH,
     point_with_inv_TH,
-    safe_acos,
-    point_in_polygon
+    point_in_polygon,
+    build_matrix_A,
+    build_matrix_B,
+    det,
 )
 from scipy.optimize import root
 
-def to_screen(pos):
-    scale = 1000
-    offset = (400, 300)
+# ------------------------------------------------------------------
+# Limite mécanique des servomoteurs : ±150°  
+# ------------------------------------------------------------------
+MAX_SERVO_ANGLE = math.radians(150)
+
+# ------------------------------------------------------------------
+# Outil graphique : (x, y) m → pixels
+# ------------------------------------------------------------------
+def to_screen(pos, scale: int = 1000, offset=(400, 300)):
     return int(pos[0] * scale + offset[0]), int(-pos[1] * scale + offset[1])
 
+# ------------------------------------------------------------------
+# Classe Robot 3-RRR
+# ------------------------------------------------------------------
 class Robot3RRR:
-    def __init__(self, L1, L2, Rb, Re, ang1, ang2):
-        self.L1 = L1
-        self.L2 = L2
-        self.Rb = Rb
-        self.Re = Re
-        self.ang1 = ang1
-        self.ang2 = ang2
-        self.pose = (0, 0, 0)
-        self.q = None
-        self.error_msg = ""
-        self.restricted_mode = False
-        self.mode = "analytic"
-        self.bloque = False
+    """Robot parallèle plan 3-RRR : cinématique + rendu Pygame."""
 
-    def solve_eq_NL(self, q, eff):
-        alpha = [q[0], q[2], q[4]]
-        beta = [q[1], q[3], q[5]]
+    def __init__(self, L1, L2, Rb, Re, ang1, ang2):
+        self.L1, self.L2, self.Rb, self.Re = L1, L2, Rb, Re
+        self.ang1, self.ang2 = ang1, ang2
+        self.pose = (0.0, 0.0, 0.0)
+        self.q = None
+        self.mode = "analytic"       # analytic | numeric
+        self.restricted_mode = False # évite collisions Bi∈effecteur
+
+        # Diagnostics
+        self.error_msg = ""
+        self.bloque = False
+        self.last_detA = None
+        self.last_detB = None
+
+    # --------------------------------------------------------------
+    # MGI numérique (Newton-Raphson)
+    # --------------------------------------------------------------
+    def _eq_constraints(self, q, eff):
+        al = [q[0], q[2], q[4]]
+        be = [q[1], q[3], q[5]]
         R_E = rotation_matrix(eff[2])
-        T_E = np.array([[eff[0]], [eff[1]]])
-        H_E = homogene_transform(R_E, T_E)
+        H_E = homogene_transform(R_E, np.array([[eff[0]], [eff[1]]]))
         F = []
         for i in range(3):
-            PEi_E = np.array([self.Re * math.cos(self.ang2[i]), self.Re * math.sin(self.ang2[i]), 1])
+            PEi_E = np.array([self.Re*math.cos(self.ang2[i]),
+                              self.Re*math.sin(self.ang2[i]), 1])
             PEi_0 = point_with_TH(H_E, PEi_E)
             R_i = rotation_matrix(self.ang1[i])
-            Oi = np.array([[self.Rb * math.cos(self.ang2[i])], [self.Rb * math.sin(self.ang2[i])]])
+            Oi = np.array([[self.Rb*math.cos(self.ang2[i])],
+                           [self.Rb*math.sin(self.ang2[i])]])
             H_Ri = homogene_transform(R_i, Oi)
-
-            x_bi = self.L1 * math.cos(alpha[i]) + self.L2 * math.cos(alpha[i] + beta[i])
-            y_bi = self.L1 * math.sin(alpha[i]) + self.L2 * math.sin(alpha[i] + beta[i])
-            PBi_local = np.array([x_bi, y_bi, 1])
-            PBi_0 = point_with_TH(H_Ri, PBi_local)
-
-            F.append(PBi_0[0] - PEi_0[0])
-            F.append(PBi_0[1] - PEi_0[1])
+            x_bi = self.L1*math.cos(al[i]) + self.L2*math.cos(al[i]+be[i])
+            y_bi = self.L1*math.sin(al[i]) + self.L2*math.sin(al[i]+be[i])
+            PBi_0 = point_with_TH(H_Ri, np.array([x_bi, y_bi, 1]))
+            F.extend([PBi_0[0]-PEi_0[0], PBi_0[1]-PEi_0[1]])
         return np.array(F)
 
     def inverse_kinematics_numeric(self, pose, q0=None, max_iter=50, tol=1e-6):
         if q0 is None:
             q0 = np.zeros(6)
-        result = root(lambda q: self.solve_eq_NL(q, pose), q0, method='hybr', options={'maxfev': max_iter, 'xtol': tol})
-        if result.success:
-            q = result.x
-            return [(q[0], q[1]), (q[2], q[3]), (q[4], q[5])]
-        else:
-            raise ValueError("MGI numérique échoué")
+        res = root(lambda q: self._eq_constraints(q, pose), q0,
+                   method="hybr", options={"maxfev": max_iter, "xtol": tol})
+        if not res.success:
+            raise ValueError("MGI numérique échoué : " + res.message)
+        q = res.x
+        return [(q[0], q[1]), (q[2], q[3]), (q[4], q[5])]
 
+    # --------------------------------------------------------------
+    # MGI analytique + singularités + limite servo
+    # --------------------------------------------------------------
     def compute_kinematics(self, eff):
-        q = []
         x, y, theta = eff
-        RotEff = rotation_matrix(theta)
-        Transl = np.array([[x], [y]])
-        THEff = homogene_transform(RotEff, Transl)
+        H_E = homogene_transform(rotation_matrix(theta), np.array([[x], [y]]))
+        Ce = np.array([x, y])
+
+        gam, ds, es, q_list = [], [], [], []
+        cross = lambda a, b: a[0]*b[1] - a[1]*b[0]
 
         for i in range(3):
-            Rot = rotation_matrix(self.ang1[i])
-            pos_Oi = np.array([[self.Rb * math.cos(self.ang2[i])],
-                               [self.Rb * math.sin(self.ang2[i])]])
-            TH = homogene_transform(Rot, pos_Oi)
+            H_Ri = homogene_transform(
+                rotation_matrix(self.ang1[i]),
+                np.array([[self.Rb*math.cos(self.ang2[i])],
+                          [self.Rb*math.sin(self.ang2[i])]]))
 
-            PEi_E = np.array([[self.Re * math.cos(self.ang2[i])],
-                              [self.Re * math.sin(self.ang2[i])],
-                              [1]])
-            PEi_0 = THEff @ PEi_E
-            PEi_i = point_with_inv_TH(TH, PEi_0)
+            PEi_0 = H_E @ np.array([[self.Re*math.cos(self.ang2[i])],
+                                    [self.Re*math.sin(self.ang2[i])],
+                                    [1]])
+            PEi_i = point_with_inv_TH(H_Ri, PEi_0)
+            xi, yi = PEi_i[0, 0], PEi_i[1, 0]
 
-            x_i, y_i = PEi_i[0, 0], PEi_i[1, 0]
-            aux = (x_i ** 2 + y_i ** 2 - self.L1 ** 2 - self.L2 ** 2) / (2 * self.L1 * self.L2)
-            if abs(aux) > 1:
-                raise ValueError("Singularité série (hors de portée)")
+            cosb = (xi**2 + yi**2 - self.L1**2 - self.L2**2) / (2*self.L1*self.L2)
+            if abs(cosb) > 1:
+                raise ValueError("Pose hors espace de travail")
+            beta = math.acos(cosb)
+            alpha = math.atan2(yi, xi) - math.atan2(
+                self.L2*math.sin(beta), self.L1+self.L2*math.cos(beta))
 
-            beta = math.acos(aux)
-            alpha = math.atan2(y_i, x_i) - math.atan2(self.L2 * math.sin(beta),
-                                                      self.L1 + self.L2 * math.cos(beta))
+            # Limite Dynamixel ±45°
+            if not (-MAX_SERVO_ANGLE <= alpha <= MAX_SERVO_ANGLE):
+                raise ValueError(f"Limite servo dépassée : α{i+1}={math.degrees(alpha):.1f}°")
 
-            Oi = (self.Rb * math.cos(self.ang2[i]), self.Rb * math.sin(self.ang2[i]))
-            Bi = (Oi[0] + self.L1 * math.cos(alpha + self.ang1[i]),
-                  Oi[1] + self.L1 * math.sin(alpha + self.ang1[i]))
-            Ei = (Bi[0] + self.L2 * math.cos(alpha + beta + self.ang1[i]),
-                  Bi[1] + self.L2 * math.sin(alpha + beta + self.ang1[i]))
+            Oi = (self.Rb*math.cos(self.ang2[i]), self.Rb*math.sin(self.ang2[i]))
+            Bi = (Oi[0] + self.L1*math.cos(alpha+self.ang1[i]),
+                  Oi[1] + self.L1*math.sin(alpha+self.ang1[i]))
+            Ei = (Bi[0] + self.L2*math.cos(alpha+beta+self.ang1[i]),
+                  Bi[1] + self.L2*math.sin(alpha+beta+self.ang1[i]))
 
-            v1 = np.array([Ei[0] - Oi[0], Ei[1] - Oi[1]])
-            v2 = np.array([Bi[0] - Oi[0], Bi[1] - Oi[1]])
-            if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
-                raise ValueError("Vecteur nul")
-            ang = math.acos(np.clip(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)), -1, 1))
-            if ang > math.radians(100):
-                raise ValueError("Singularité parallèle (bras mal orienté)")
+            ui = np.array([Ei[0]-Bi[0], Ei[1]-Bi[1]])
+            if np.linalg.norm(ui) == 0:
+                raise ValueError("Vecteur nul – configuration dégénérée")
+            ui_n = ui/np.linalg.norm(ui)
 
-            q.append((alpha, beta, Bi, Ei))
+            gam.append(math.atan2(ui_n[1], ui_n[0]))
+            ds.append(cross(Ce - np.array(Bi), ui_n))
+            es.append(cross(np.array(Oi) - np.array(Bi), ui_n))
+            q_list.append((alpha, beta, Bi, Ei))
 
-        # Mode restreint : on ignore simplement la pose si Bi sous l'effecteur (aucune erreur ni blocage)
+        A = build_matrix_A(gam, ds)
+        B = build_matrix_B(es)
+        self.last_detA, self.last_detB = detA, detB = det(A), det(B)
+
+        if abs(detA) < SINGULARITY_THRESHOLD:
+            raise ValueError(f"Singularité parallèle : det(A) ≈ {detA:.2e}")
+        if abs(detB) < SINGULARITY_THRESHOLD:
+            raise ValueError(f"Singularité série : det(B) ≈ {detB:.2e}")
+
         if self.restricted_mode:
-            effecteur_poly = [item[3] for item in q]
-            for (_, _, Bi, _) in q:
-                if point_in_polygon(Bi, effecteur_poly):
-                    return None  # pose ignorée sans message ni blocage
+            poly = [item[3] for item in q_list]
+            for (_, _, Bi, _) in q_list:
+                if point_in_polygon(Bi, poly):
+                    return None
+        return q_list
 
-        return q
-
-    def set_pose(self, new_pose):
+    # --------------------------------------------------------------
+    # Interface haut-niveau
+    # --------------------------------------------------------------
+    def set_pose(self, pose):
         try:
             if self.mode == "analytic":
-                q = self.compute_kinematics(new_pose)
+                q = self.compute_kinematics(pose)
                 if self.restricted_mode and q is None:
-                    return  # pose interdite en mode restreint, on ignore
-            elif self.mode == "numeric":
-                q = self.inverse_kinematics_numeric(new_pose)
+                    return
             else:
-                raise ValueError("Méthode inconnue")
-
-            self.pose = new_pose
-            self.q = q
-            self.error_msg = ""
-            self.bloque = False
-
+                q = self.inverse_kinematics_numeric(pose)
+            self.pose, self.q = pose, q
+            self.error_msg, self.bloque = "", False
         except Exception as e:
-            self.q = None
-            self.bloque = True
-            self.error_msg = str(e)
+            self.error_msg, self.bloque, self.q = str(e), True, None
 
-    def draw(self, surface):
+    # --------------------------------------------------------------
+    # Dessin Pygame
+    # --------------------------------------------------------------
+    def draw(self, surf):
         if self.q is None:
             return
-        triangle_points = []
-        for i in range(3):
-            alpha, beta, Bi, Ei = self.q[i]
-            Oi = (self.Rb * math.cos(self.ang2[i]), self.Rb * math.sin(self.ang2[i]))
-            color_base = (255, 0, 0) if self.bloque else (0, 0, 255)
-
-            pygame.draw.line(surface, color_base, to_screen(Oi), to_screen(Bi), 3)
-            pygame.draw.circle(surface, (255, 150, 0), to_screen(Bi), 5)
-            pygame.draw.line(surface, (0, 200, 0), to_screen(Bi), to_screen(Ei), 3)
-            pygame.draw.circle(surface, (255, 0, 0), to_screen(Ei), 5)
-            triangle_points.append(to_screen(Ei))
-
-        pygame.draw.polygon(surface, (0, 0, 0), triangle_points, 2)
+        tri = []
+        for i, (_, _, Bi, Ei) in enumerate(self.q):
+            Oi = (self.Rb*math.cos(self.ang2[i]), self.Rb*math.sin(self.ang2[i]))
+            col = (200,0,0) if self.bloque else (0,0,200)
+            pygame.draw.line(surf, col, to_screen(Oi), to_screen(Bi), 3)
+            pygame.draw.line(surf, (0,180,0), to_screen(Bi), to_screen(Ei), 3)
+            pygame.draw.circle(surf, (255,140,0), to_screen(Bi), 5)
+            pygame.draw.circle(surf, (220,0,0), to_screen(Ei), 5)
+            tri.append(to_screen(Ei))
+        pygame.draw.polygon(surf, (0,0,0), tri, 2)
 
         if self.bloque and self.error_msg:
             font_big = pygame.font.SysFont("Arial", 22)
-            err_text = font_big.render(f"Erreur: {self.error_msg}", True, (200, 0, 0))
-            rect = err_text.get_rect(center=(400, 50))
-            surface.blit(err_text, rect)
+            txt = font_big.render("Erreur : "+self.error_msg, True, (200,0,0))
+            surf.blit(txt, txt.get_rect(center=(400, 50)))
 
-    def draw_info(self, surface, font, width, drawing_mode):
-        surface.blit(font.render(f"Pose: x={self.pose[0]:.2f}, y={self.pose[1]:.2f}, θ={math.degrees(self.pose[2]):.1f}°", True, (0, 0, 0)), (10, 10))
-        surface.blit(font.render(f"Mode MGI: {self.mode.upper()}", True, (0, 0, 0)), (10, 30))
-        surface.blit(font.render(f"Mode restreint: {'ON' if self.restricted_mode else 'OFF'}", True, (0, 0, 0)), (width - 220, 150))
-        surface.blit(font.render(f"Mode dessin: {'ON' if drawing_mode else 'OFF'}", True, (0, 0, 0)), (width - 220, 170))
-
+    def draw_info(self, surf, font, width, drawing_mode):
+        x, y, th = self.pose
+        surf.blit(font.render(f"x={x:.2f} m, y={y:.2f} m, θ={math.degrees(th):.1f}°",
+                              True, (0,0,0)), (10,10))
+        surf.blit(font.render(f"Mode MGI : {self.mode.upper()}", True, (0,0,0)), (10,30))
+        surf.blit(font.render(f"det(A)={self.last_detA:+.2e}", True, (0,0,0)), (10,50))
+        surf.blit(font.render(f"det(B)={self.last_detB:+.2e}", True, (0,0,0)), (10,70))
+        surf.blit(font.render(f"Restreint : {'ON' if self.restricted_mode else 'OFF'}",
+                              True, (0,0,0)), (width-230,150))
+        surf.blit(font.render(f"Dessin traj : {'ON' if drawing_mode else 'OFF'}",
+                              True, (0,0,0)), (width-230,170))
         if self.error_msg and self.bloque:
-            surface.blit(font.render("Erreur: " + self.error_msg, True, (200, 0, 0)), (10, 50))
+            surf.blit(font.render("Erreur : "+self.error_msg, True, (200,0,0)), (10,90))
