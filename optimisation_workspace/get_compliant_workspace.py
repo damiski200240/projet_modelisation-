@@ -33,10 +33,7 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation, plot = Fa
     wm1, wm2, wm3 = mode
 
     # Initial joint angles
-    theta_up, theta_down = ikm(x_init, y_init, theta_init, param)
-    theta_10 = theta_up[0] if wm1 == 1 else theta_down[0]
-    theta_20 = theta_up[1] if wm2 == 1 else theta_down[1]
-    theta_30 = theta_up[2] if wm3 == 1 else theta_down[2]
+    theta_10, theta_20, theta_30 = ikm(param,x_init, y_init, theta_init)
 
     [ph10, ph20, ph30, psi10, psi20, psi30] = ikm_phi_psi(param, [theta_10, theta_20, theta_30], x_init, y_init, theta_init)
 
@@ -44,14 +41,14 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation, plot = Fa
     # for the first leg
 
     # sweep across all the possible values of theta and phi, initial value +- limit
-    theta = linspace(theta_10 - limit, theta_10 + limit)
-    phi = linspace(ph10 - limit, ph10 + limit)
+    theta = linspace(theta_10[wm1 -1 ] - limit, theta_10[wm1 -1 ] + limit)
+    phi = linspace(ph10[wm1 -1 ] - limit, ph10[wm1 -1 ] + limit)
 
     # calculate psi from phi: psi = pi - phi + OFFSET + alpha + orientation
     psi = pi - phi + pi/6 + theta_init + orientation
 
     # find the positions where the joint limit is not respected
-    valid_idx = np.abs(psi - psi10) < limit
+    valid_idx = np.abs(psi - psi10[wm1 -1 ]) < limit
 
     # keep only valid phi values
     phi = phi[valid_idx]
@@ -65,14 +62,14 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation, plot = Fa
     # for the second leg
 
     # sweep across all the possible values of theta and phi, initial value +- limit
-    theta = linspace(theta_20 - limit, theta_20 + limit)
-    phi = linspace(ph20 - limit, ph20 + limit)
+    theta = linspace(theta_20[wm2 -1 ] - limit, theta_20[wm2 -1 ] + limit)
+    phi = linspace(ph20[wm2 -1 ] - limit, ph20[wm2 -1 ] + limit)
 
     # calculate psi from phi: psi = pi - phi + OFFSET + alpha + orientation
     psi = pi - phi + 5*pi/6 + theta_init + orientation
 
     # find the positions where the joint limit is not respected
-    valid_idx = np.abs(psi - psi20) < limit
+    valid_idx = np.abs(psi - psi20[wm2 -1 ]) < limit
 
     # keep only valid phi values
     phi = phi[valid_idx]
@@ -86,14 +83,14 @@ def get_compliant_workspace(param, limit, home_pos, mode, orientation, plot = Fa
     # for the third leg
 
     # sweep across all the possible values of theta and phi, initial value +- limit
-    theta = linspace(theta_30 - limit, theta_30 + limit)
-    phi = linspace(ph30 - limit, ph30 + limit)
+    theta = linspace(theta_30[wm3 -1 ] - limit, theta_30[wm3 -1 ] + limit)
+    phi = linspace(ph30[wm3 -1 ] - limit, ph30[wm3 -1 ] + limit)
 
     # calculate psi from phi: psi = pi - phi + OFFSET + alpha + orientation
     psi = pi - phi + 3*pi/2 + theta_init + orientation
 
     # find the positions where the joint limit is not respected
-    valid_idx = np.abs(psi - psi30) < limit
+    valid_idx = np.abs(psi - psi30[wm3 -1 ]) < limit
 
     # keep only valid phi values
     phi = phi[valid_idx]
