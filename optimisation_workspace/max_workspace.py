@@ -34,7 +34,7 @@ def objective_function(param):
         return 1e6  # invalid configuration
 
     # Reject if any part of workspace escapes the base circle
-    if not is_inside_base_circle(workspace, Rb) or Re > 0.75 * Rb or Re > 0.8 * L1 :
+    if not is_inside_base_circle(workspace, Rb) or Re > 0.6 * Rb or Re > 0.8 * L1 :
         return 1e6  # penalty
 
     return -workspace.area  # maximize area

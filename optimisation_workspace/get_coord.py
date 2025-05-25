@@ -9,14 +9,19 @@ import numpy as np
 def get_coord(param,theta,phi,theta_e,rot) : 
     Rb, L1, L2, Re = param
     
-    rot_mat = [ [cos(rot), -sin(rot)],
-                [sin(rot), cos(rot)] ]
-    OA = np.dot(rot_mat, np.array([0, Rb]))
-    AB = np.array([L1 * cos(theta), L1 * sin(theta)])
-    BC = np.array([L2 * cos(phi), L2 * sin(phi)])
-    CP = np.dot(rot_mat, np.array([Re * cos(theta_e- np.pi / 2), Re * sin(theta_e- np.pi / 2)]))
+    # Rotation matrix
+    rot_mat = np.array([
+        [np.cos(rot), -np.sin(rot)],
+        [np.sin(rot),  np.cos(rot)]
+    ])
 
-    # end-effector's final position
+    # Vector coordinates
+    OA = rot_mat @ np.array([0, Rb])
+    AB = np.array([L1 * np.cos(theta), L1 * np.sin(theta)])
+    BC = np.array([L2 * np.cos(phi), L2 * np.sin(phi)])
+    CP = rot_mat @ np.array([Re * np.cos(theta_e - np.pi / 2), Re * np.sin(theta_e - np.pi / 2)])
+
+    # End-effector's final position
     end_effector = OA + AB + BC + CP
 
     return end_effector

@@ -3,52 +3,28 @@
 # 
 
 from numpy import sqrt, sin , cos, pi, arctan
-
-
-def ikm(x, y, theta_e, param):
-    Rb = param[0]
-    L1 = param[1]
-    L2 = param[2]
-    Re = param[3]
-
-    xO, yO = [], []
-    xE, yE = [], []
-    a_list, b_list, c_list = [], [], []
-
-    for i in range(3):  # i = 0, 1, 2
-        angle_O = 2 * i * pi / 3 + pi / 2
-        angle_E = theta_e + 2 * i * pi / 3 - pi / 2
-
-        xO_i = Rb * cos(angle_O)
-        yO_i = Rb * sin(angle_O)
-        xE_i = Re * cos(angle_E)
-        yE_i = Re * sin(angle_E)
-
-        xO.append(xO_i)
-        yO.append(yO_i)
-        xE.append(xE_i)
-        yE.append(yE_i)
-
-    for i in range(3):
-        a = Rb**2 + Re**2 + L1**2 - L2**2 + x**2 + y**2 + 2*xO[i]*xE[i] - 2*xO[i]*x - 2*xE[i]*x + 2*yO[i]*yE[i] - 2*yO[i]*y - 2*yE[i]*y
-        b = 2 * L1 * (xO[i] + xE[i] - x)
-        c = 2 * L1 * (yO[i] + yE[i] - y)
-
-        a_list.append(a)
-        b_list.append(b)
-        c_list.append(c)
-    
-    
-    
-    theta_up = []
-    theta_down = []
-    for i in range(0 , 3) : 
-       under_root = c_list[i] ** 2 + b_list[i]**2 - a_list[i] ** 2
-       delta = max(0, under_root )
-       th_up = 2 * arctan((-c_list[i] + delta) / a_list[i] - b_list[i])
-       th_down = 2 * arctan((-c_list[i] - delta) / a_list[i] - b_list[i])
-       theta_up.append(th_up)
-       theta_down.append(th_down)
-    
-    return theta_up , theta_down
-    
+import numpy as np
+def ikm(param, x, y, theta_e):
+    K, l1, l2, R = param
+    i = np.arange(1, 4)
+    xA = K * np.cos(2 * i * np.pi / 3 + np.pi / 2)
+    yA = K * np.sin(2 * i * np.pi / 3 + np.pi / 2)
+    xCP = R * np.cos(theta_e + 2 * i * np.pi / 3 - np.pi / 2)
+    yCP = R * np.sin(theta_e + 2 * i * np.pi / 3 - np.pi / 2)
+    a = (K ** 2 + R ** 2 + l1 ** 2 - l2 ** 2 + x ** 2 + y ** 2 +
+         2 * xA * xCP - 2 * xA * x - 2 * xCP * x +
+         2 * yA * yCP - 2 * yA * y - 2 * yCP * y)
+    b = 2 * l1 * (xA + xCP - x)
+    c = 2 * l1 * (yA + yCP - y)
+    sqrt_arg = c ** 2 + b ** 2 - a ** 2
+    thp = np.full(3, np.nan)
+    thm = np.full(3, np.nan)
+    for idx in range(3):
+        if sqrt_arg[idx] >= 0:
+            sqrt_val = np.sqrt(sqrt_arg[idx])
+            thp[idx] = 2 * np.arctan((-c[idx] + sqrt_val) / (a[idx] - b[idx]))
+            thm[idx] = 2 * np.arctan((-c[idx] - sqrt_val) / (a[idx] - b[idx]))
+    th1 = np.array([thp[0], thm[0]])
+    th2 = np.array([thp[1], thm[1]])
+    th3 = np.array([thp[2], thm[2]])
+    return th1, th2, th3

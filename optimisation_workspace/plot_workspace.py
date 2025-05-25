@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 from numpy import pi , cos, sin 
 # Kinematic parameters
 Rb = 150
-l1 = 98.09268142  
-l2 = 98.09268142 
-Re = 77.91650034
+l1 = 98.18861278  
+l2 = 98.18861278
+Re = 77.89302838
 param = [Rb, l1, l2, Re]
 
 # Compliant joint limitation
-limit = 69* np.pi / 180
+limit = 300* np.pi / 180
 
 # Working mode
 mode = '+ + +'

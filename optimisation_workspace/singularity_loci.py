@@ -39,25 +39,16 @@ def det_jacobian(param, theta, phi, alpha):
         dJth: Determinant of the Jacobian with respect to theta.
         dJx: Determinant of the Jacobian with respect to x.
     """
-    # Kinematic parameters
     K, L1, L2, R = param
-
-    # Active joint angles
     th1, th2, th3 = theta
-
-    # Passive joint angles
     ph1, ph2, ph3 = phi
-
-    # Calculate Jacobians
-    dJth = L1**3 * np.sin(ph1 - th1) * np.sin(ph2 - th2) * np.sin(ph3 - th3)
-
+    dJth = L1 ** 3 * np.sin(ph1 - th1) * np.sin(ph2 - th2) * np.sin(ph3 - th3)
     Jx = np.array([
         [-np.cos(ph1), -np.sin(ph1), R * np.sin(ph1 - alpha - np.pi / 6)],
         [-np.cos(ph2), -np.sin(ph2), R * np.sin(ph2 - alpha - 5 * np.pi / 6)],
         [-np.cos(ph3), -np.sin(ph3), R * np.sin(ph3 - alpha - 3 * np.pi / 2)]
     ])
     dJx = np.linalg.det(Jx)
-
     return dJth, dJx
 
 def combine_det(param, th1, th2, th3, x, y, a):
@@ -75,63 +66,52 @@ def combine_det(param, th1, th2, th3, x, y, a):
         detJx: Determinants of the Jacobian with respect to x.
     """
     # Generate all combinations of th1, th2, th3
-    TH1, TH2, TH3 = np.meshgrid(th1, th2, th3, indexing='ij')
-    comb = np.stack((TH1.ravel(), TH2.ravel(), TH3.ravel()), axis=-1)
-
-    # Initialize determinant arrays
+    from itertools import product
+    th_combos = np.array(list(product(th1, th2, th3)))
     detJx = np.zeros(8)
     detJth = np.zeros(8)
-
-    # Iterate through all combinations (working modes)
-    for k in range(len(comb)):
-        th1_k, th2_k, th3_k = comb[k]
-        # Calculate the associated phi1, phi2, phi3
-        ph1, ph2, ph3, psi1 , psi2 , psi3 = ikm_phi_psi(param, [th1_k, th2_k, th3_k], x, y, a)
-        th = [th1_k, th2_k, th3_k]
+    for k, th in enumerate(th_combos):
+        if np.any(np.isnan(th)):
+            detJth[k] = np.nan
+            detJx[k] = np.nan
+            continue
+        ph1, ph2, ph3, *_ = ikm_phi_psi(param, th, x, y, a)
         ph = [ph1, ph2, ph3]
-        # Calculate determinants
+        if np.any(np.isnan(ph)):
+            detJth[k] = np.nan
+            detJx[k] = np.nan
+            continue
         Jth, Jx = det_jacobian(param, th, ph, a)
-        # Save determinant for the particular working mode
-        detJth[k] = Jth
-        detJx[k] = Jx
-
+        if np.isnan(Jth) or np.isnan(Jx):
+            detJth[k] = np.nan
+            detJx[k] = np.nan
+        else:
+            detJth[k] = Jth
+            detJx[k] = Jx
+            
     return detJth, detJx
 
-def get_best_mode(det_J_s):
-    variations = [np.max(det_J_s[i]) - np.min(det_J_s[i]) for i in range(8)]
-    best_index = np.argmax(variations)
-    return best_index
 
 
-def det_J(param, coord, theta_e) : 
-        
-        
-    det_J_s = np.zeros((8,len(coord), len(coord)))
-
-    det_J_p = np.zeros((8,len(coord), len(coord)))
-    for i in range(len(coord)) : 
-        for j in range(len(coord)) : 
-            theta_up, theta_down = ikm(coord[i], coord[j], theta_e, param)
-            # Choose elbow-up configuration (you can choose elbow-down if needed)
-            th1, th2, th3 = theta_up
-
-            if (np.isreal(th1) and np.isreal(th2) and  np.isreal(th3)  ) : # meaning that our x and y coordinates are reachable by our 3 robotics arms  
-                [dJ_p, dJ_s] = combine_det(param,th1,th2,th3,coord[i],coord[j],theta_e)
+def det_J(param, coord, theta_e, nb_points) :  
+    valid_points = 0 
+    det_J_s = np.zeros((8,nb_points, nb_points))
+    det_J_p = np.zeros((8,nb_points, nb_points))
+    for j in range(nb_points) : 
+        for i in range(nb_points) : 
+            th1, th2, th3 = ikm(coord[j], coord[i], theta_e, param)
+            if (np.isreal(th1).all() and np.isreal(th2).all() and  np.isreal(th3).all()  ) : # meaning that our x and y coordinates are reachable by our 3 robotics arms  
+                [dJ_p, dJ_s] = combine_det(param,th1,th2,th3,coord[j],coord[i],theta_e)
                 # save determinant values
                 det_J_p[:, i, j] = dJ_p
                 det_J_s[:, i, j] = dJ_s
+                if not np.all(np.isnan(dJ_s)):
+                    valid_points += 1
+    print(f"Number of valid points: {valid_points}")        
                 
-                
-                
-
-    Mp = np.max(np.abs(det_J_p)) 
+    Ms = np.nanmax(np.abs(det_J_s))
+    det_J_s = det_J_s / Ms 
+    Mp = np.max(np.abs(det_J_p))
     det_J_p = det_J_p/Mp 
 
-    Ms = np.max(np.abs(det_J_s)) 
-    det_J_s = det_J_s/Ms 
-    
-    best_idx = get_best_mode(det_J_s)
-    print(f"[INFO] Best working mode index based on variation: {best_idx}")
-
-    return det_J_p, det_J_s, best_idx
-
+    return det_J_p, det_J_s
