@@ -11,12 +11,20 @@ import  time
 from shapely.geometry import Point
 
 def get_compliant_workspace_polygon(param) : 
-    mode = '+ + +'
-    home_pos = [0, 0, 0]
-    orientation = 0 * pi / 180
-    limit = 300* pi / 180
-    workspace = get_compliant_workspace(param, limit, home_pos, mode, orientation, plot=False)
-    return workspace
+    try:
+        mode = '+ + +'
+        home_pos = [0, 0, 0]
+        orientation = 0 * pi / 180
+        limit = 300 * pi / 180
+        workspace = get_compliant_workspace(param, limit, home_pos, mode, orientation, plot=False)
+
+        # check if workspace exists and has at least 3 points
+        if workspace is None or workspace.is_empty or len(workspace.exterior.coords) < 3:
+            return None
+        return workspace
+    except Exception as e:
+        print("Error in get_compliant_workspace_polygon:", e)
+        return None
 
 def is_inside_base_circle(workspace, Rb):
     center = Point(0, 0)

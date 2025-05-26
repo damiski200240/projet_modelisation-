@@ -16,12 +16,12 @@ def get_coord(param,theta,phi,theta_e,rot) :
     ])
 
     # Vector coordinates
-    OA = rot_mat @ np.array([0, Rb])
-    AB = np.array([L1 * np.cos(theta), L1 * np.sin(theta)])
-    BC = np.array([L2 * np.cos(phi), L2 * np.sin(phi)])
-    CP = rot_mat @ np.array([Re * np.cos(theta_e - np.pi / 2), Re * np.sin(theta_e - np.pi / 2)])
+    OOi = rot_mat @ np.array([0, Rb])
+    OiA = np.array([L1 * np.cos(theta), L1 * np.sin(theta)])
+    AB = np.array([L2 * np.cos(phi), L2 * np.sin(phi)])
+    BC = rot_mat @ np.array([Re * np.cos(theta_e - np.pi / 2), Re * np.sin(theta_e - np.pi / 2)])
 
     # End-effector's final position
-    end_effector = OA + AB + BC + CP
+    end_effector = OOi + OiA + AB + BC
 
     return end_effector
